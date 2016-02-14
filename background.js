@@ -2,12 +2,13 @@ var tabs = new Object();
 var removedTabs = new Object();
 var tabMap = new Object();
 var currentActivatedTabId;
+var tabLife = 900000;
 
 function startTime(tabId) {
 
     tabMap[tabId] = window.setTimeout(function() {
         chrome.tabs.remove(tabId);
-    }, 5000);
+    }, tabLife);
 }
 
 
@@ -75,8 +76,8 @@ function init() {
     chrome.tabs.onActivated.addListener(function(activeInfo) {
         window.clearTimeout(tabMap[currentActivatedTabId]);
         delete tabMap[currentActivatedTabId]; 
-        if(currentActivatedTabId) {
-            tabMap[currentActivatedTabId] = window.setTimeout(getRemoverForTabId(currentActivatedTabId), 5000);
+        if(currentActivatedTabId in tabs) {
+            tabMap[currentActivatedTabId] = window.setTimeout(getRemoverForTabId(currentActivatedTabId), tabLife);
         }
         currentActivatedTabId = activeInfo.tabId;
         window.clearTimeout(tabMap[currentActivatedTabId]);
@@ -87,8 +88,9 @@ function init() {
         tabs[tabId] = tab;
     });
 
-    //make items from the removedTabs array available for display and 
-    //clickable through 
+    /* Connecting background.js to popup.js so that the data here
+     * will be shown to the end user */
+    chrome.runtime.sendMessage(Object.keys(removedTabs));
 
 }
 
