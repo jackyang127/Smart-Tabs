@@ -1,26 +1,7 @@
-var tabs = [];
-var removedTabs = [];
+var tabs = new Object();
+var removedTabs = new Object();
 var tabMap = new Object();
 var currentActivatedTabId;
-
-//var timeoutID;
-/*
-function checkActivity() {
-*/
-    /*
-    this.addEventListener('mousemove', resetActivity);
-    this.addEventListener('mousedown', resetActivity);
-    this.addEventListener('keypress', resetActivity);
-    this.addEventListener('DOMMouseScroll', resetActivity);
-    this.addEventListener('mousewheel', resetActivity);
-    */
-/*
-    chrome.tabs.onActivated.addListener( function(activeInfo) {
-        startTime(activeInfo.tabId);
-    });
-
-}
-*/
 
 function startTime(tabId) {
 
@@ -29,13 +10,6 @@ function startTime(tabId) {
     }, 5000);
 }
 
-/*
-function resetActivity() {
-    window.clearTimout(timemoutID);
-    startTime();
-    
-}
-*/
 
 function makeInactive(activeInfo) {
     //insert something about removing the tab and storing the details of the tab
@@ -47,11 +21,11 @@ function makeInactive(activeInfo) {
 }
 
 function recordActive(toRecord) {
-    tabs.push(toRecord);
+    tabs[toRecord.id] = toRecord;
 }
 
 function recordRemoved(toRecord) {
-    removedTabs.push(toRecord); 
+    removedTabs[toRecord.id] = toRecord; 
 }
 
 function getRemoverForTabId(tabId) {
@@ -76,14 +50,14 @@ function init() {
         }
     });
 
-    //checkActivity();
-
     //keep track of tabs when they are closed
     /* Idea would be to place the information of the tabs
        that are removed into another array or something similar
        so that the information can be displayed in another location
        in case the user wants to quickly access it later */
     chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
+        removedTabs[tabId] = tabs[tabId];
+        delete tabs[tabId];
         delete tabMap[tabId];        
         //recordRemoved(removeInfo);
     });
@@ -107,6 +81,10 @@ function init() {
         currentActivatedTabId = activeInfo.tabId;
         window.clearTimeout(tabMap[currentActivatedTabId]);
 
+    });
+
+    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+        tabs[tabId] = tab;
     });
 
     //make items from the removedTabs array available for display and 
